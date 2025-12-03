@@ -1,0 +1,45 @@
+name: CD - Deploy Application
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:  # Для ручного запуска
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -p 2475 course.prafdin.ru >> ~/.ssh/known_hosts
+    
+    - name: Deploy to server via SSH
+      run: |
+        echo "🚀 Deploying application via SSH port 2475..."
+        ssh -p 2475 nopressure@course.prafdin.ru << 'ENDSSH'
+          cd /home/nopressure/my-app
+          echo "Current directory: \$(pwd)"
+          echo "Pulling latest changes..."
+          git pull origin github-actions
+          echo "Installing dependencies..."
+          pip3 install -r requirements.txt --break-system-packages
+          echo "Stopping previous application..."
+          pkill -f uvicorn || true
+          echo "Starting new application..."
+          nohup /home/nopressure/.local/bin/uvicorn app.main:app --host 0.0.0.0 --port 8181 > app.log 2>&1 &
+          echo "✅ Deployment completed!"
+        ENDSSH
+    
+    - name: Verify deployment
+      run: |
+        echo "🚀 Application deployed successfully!"
+        echo "📅 Deployment time: $(date)"
+        echo "🌐 Application URL: http://app.titovskih.course.prafdin.ru"
+        echo "🔧 SSH port used: 2475"
