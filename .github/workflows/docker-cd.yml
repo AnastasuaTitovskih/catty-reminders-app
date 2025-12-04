@@ -1,6 +1,5 @@
 name: 🚀 Lab 3 - Docker Deploy
 
-# ТОЛЬКО для ветки docker-lab3
 on:
   push:
     branches: [ docker-lab3 ]
@@ -8,6 +7,7 @@ on:
       - 'Dockerfile'
       - 'app/**'
       - 'requirements.txt'
+      - '.github/workflows/docker-cd.yml'
 
 jobs:
   deploy:
@@ -19,8 +19,9 @@ jobs:
     
     - name: Debug info
       run: |
-        echo "🔧 This is Lab 3 (Docker) workflow"
-        echo "🚀 Deploying from docker-lab3 branch"
+        echo "🔧 Lab 3 - Docker Deployment"
+        echo "Branch: ${{ github.ref }}"
+        echo "Using SSH key from GitHub Secrets"
     
     - name: Deploy via SSH
       uses: appleboy/ssh-action@v1.0.0
@@ -31,22 +32,38 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           echo "=== Lab 3: Docker Deployment ==="
-          echo "Branch: docker-lab3"
+          echo "Branch: ${{ github.ref }}"
+          echo "User: $(whoami)"
+          echo "Directory: $(pwd)"
           
+          # Переходим в папку проекта
           cd /home/nopressure/my-app
+          
+          # Переключаемся на ветку docker-lab3
           git fetch origin
           git checkout docker-lab3
           git pull origin docker-lab3
           
-          docker build -t catty-reminders:latest .
+          # Собираем Docker образ
+          echo "Building Docker image..."
+          docker build -t catty-reminders:lab3 .
           
+          # Останавливаем старый контейнер
+          echo "Stopping old container..."
           docker stop catty-reminders || true
           docker rm catty-reminders || true
           
+          # Запускаем новый
+          echo "Starting new container..."
           docker run -d \
             --name catty-reminders \
             --restart unless-stopped \
             -p 8181:8181 \
-            catty-reminders:latest
+            catty-reminders:lab3
           
-          echo "✅ Lab 3 (Docker) deployed!"
+          # Проверяем
+          sleep 5
+          echo "=== Verification ==="
+          docker ps | grep catty-reminders
+          echo "✅ Lab 3 deployed successfully!"
+          echo "📡 Available at: http://app.titovskih.course.prafdin.ru"
