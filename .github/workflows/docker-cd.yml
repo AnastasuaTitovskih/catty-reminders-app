@@ -1,6 +1,9 @@
 name: 🚀 Lab 3 - Docker Deploy
 
 on:
+  release:
+    types: [published]
+  workflow_dispatch:
   push:
     branches: [ docker-lab3 ]
     paths:
@@ -20,8 +23,8 @@ jobs:
     - name: Debug info
       run: |
         echo "🔧 Lab 3 - Docker Deployment"
+        echo "Trigger: ${{ github.event_name }}"
         echo "Branch: ${{ github.ref }}"
-        echo "Using SSH key from GitHub Secrets"
     
     - name: Deploy via SSH
       uses: appleboy/ssh-action@v1.0.0
@@ -32,38 +35,32 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           echo "=== Lab 3: Docker Deployment ==="
-          echo "Branch: ${{ github.ref }}"
-          echo "User: $(whoami)"
-          echo "Directory: $(pwd)"
+          echo "Trigger: ${{ github.event_name }}"
           
-          # Переходим в папку проекта
           cd /home/nopressure/my-app
           
-          # Переключаемся на ветку docker-lab3
-          git fetch origin
-          git checkout docker-lab3
-          git pull origin docker-lab3
+          if [[ "${{ github.event_name }}" == "release" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "Using main/master branch for release"
+            git checkout main || git checkout master
+          else
+            echo "Using docker-lab3 branch for push"
+            git checkout docker-lab3
+          fi
           
-          # Собираем Docker образ
+          git pull
+          
           echo "Building Docker image..."
-          docker build -t catty-reminders:lab3 .
+          docker build -t catty-reminders:latest .
           
-          # Останавливаем старый контейнер
-          echo "Stopping old container..."
           docker stop catty-reminders || true
           docker rm catty-reminders || true
           
-          # Запускаем новый
-          echo "Starting new container..."
           docker run -d \
             --name catty-reminders \
             --restart unless-stopped \
             -p 8181:8181 \
-            catty-reminders:lab3
+            catty-reminders:latest
           
-          # Проверяем
           sleep 5
-          echo "=== Verification ==="
-          docker ps | grep catty-reminders
-          echo "✅ Lab 3 deployed successfully!"
-          echo "📡 Available at: http://app.titovskih.course.prafdin.ru"
+          echo "✅ Docker container deployed!"
+          echo "📡 http://app.titovskih.course.prafdin.ru"
