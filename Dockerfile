@@ -22,3 +22,4 @@ EXPOSE 8181
 # Команда запуска
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8181"]
 # Trigger CD test - Чт 04 дек 2025 18:58:26 UTC
+# CD test Чт 04 дек 2025 19:03:46 UTC
