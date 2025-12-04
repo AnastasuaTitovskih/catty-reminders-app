@@ -24,7 +24,7 @@ jobs:
       run: |
         echo "🔧 Lab 3 - Docker Deployment"
         echo "Trigger: ${{ github.event_name }}"
-        echo "Branch: ${{ github.ref }}"
+        echo "CI pushes to GHCR, CD pulls from registry"
     
     - name: Deploy via SSH
       uses: appleboy/ssh-action@v1.0.0
@@ -35,32 +35,29 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           echo "=== Lab 3: Docker Deployment ==="
-          echo "Trigger: ${{ github.event_name }}"
+          echo "Pulling image from GitHub Container Registry..."
           
-          cd /home/nopressure/my-app
+          # Логинимся в GitHub Container Registry
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           
-          if [[ "${{ github.event_name }}" == "release" ]] || [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "Using main/master branch for release"
-            git checkout main || git checkout master
-          else
-            echo "Using docker-lab3 branch for push"
-            git checkout docker-lab3
-          fi
+          # Тянем образ
+          docker pull ghcr.io/${{ github.repository }}:docker-lab3
           
-          git pull
-          
-          echo "Building Docker image..."
-          docker build -t catty-reminders:latest .
-          
+          echo "Stopping old container..."
           docker stop catty-reminders || true
           docker rm catty-reminders || true
           
+          echo "Starting new container..."
           docker run -d \
             --name catty-reminders \
             --restart unless-stopped \
             -p 8181:8181 \
-            catty-reminders:latest
+            ghcr.io/${{ github.repository }}:docker-lab3
           
           sleep 5
-          echo "✅ Docker container deployed!"
-          echo "📡 http://app.titovskih.course.prafdin.ru"
+          echo "✅ Docker container deployed from registry!"
+          echo "📡 Application: http://app.titovskih.course.prafdin.ru"
+          echo ""
+          echo "📊 Architecture:"
+          echo "- CI: builds and pushes to GHCR"
+          echo "- CD: pulls from GHCR and deploys"
