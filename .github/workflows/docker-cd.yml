@@ -1,0 +1,52 @@
+name: 🚀 Lab 3 - Docker Deploy
+
+# ТОЛЬКО для ветки docker-lab3
+on:
+  push:
+    branches: [ docker-lab3 ]
+    paths:
+      - 'Dockerfile'
+      - 'app/**'
+      - 'requirements.txt'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Debug info
+      run: |
+        echo "🔧 This is Lab 3 (Docker) workflow"
+        echo "🚀 Deploying from docker-lab3 branch"
+    
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: course.prafdin.ru
+        port: 2475
+        username: nopressure
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          echo "=== Lab 3: Docker Deployment ==="
+          echo "Branch: docker-lab3"
+          
+          cd /home/nopressure/my-app
+          git fetch origin
+          git checkout docker-lab3
+          git pull origin docker-lab3
+          
+          docker build -t catty-reminders:latest .
+          
+          docker stop catty-reminders || true
+          docker rm catty-reminders || true
+          
+          docker run -d \
+            --name catty-reminders \
+            --restart unless-stopped \
+            -p 8181:8181 \
+            catty-reminders:latest
+          
+          echo "✅ Lab 3 (Docker) deployed!"
