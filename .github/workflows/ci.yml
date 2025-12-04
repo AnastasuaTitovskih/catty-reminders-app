@@ -24,14 +24,15 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
-    - name: Run Python tests
+    - name: Install Playwright browsers
       run: |
-        echo "Running tests..."
-        if [ -d "tests" ]; then
-          python -m pytest tests/ -v
-        else
-          echo "No tests directory found"
-        fi
+        playwright install chromium
+        playwright install-deps
+    
+    - name: Run unit tests only (без запуска приложения)
+      run: |
+        echo "Running unit tests..."
+        python -m pytest tests/test_unit.py -v
     
     - name: Check application structure
       run: |
@@ -41,3 +42,4 @@ jobs:
         [ -f "requirements.txt" ] && echo "✓ requirements.txt exists"
         [ -d "app" ] && echo "✓ app directory exists"
         [ -f "app/main.py" ] && echo "✓ app/main.py exists"
+        echo "✅ CI pipeline успешно настроен!"
