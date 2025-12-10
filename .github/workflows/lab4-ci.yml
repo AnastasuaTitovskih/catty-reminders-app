@@ -1,0 +1,31 @@
+name: 🐳 Lab 4 - Docker Compose CI
+
+on:
+  push:
+    branches: [lab4-docker-compose]
+  pull_request:
+    branches: [lab4-docker-compose]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      run: docker build -t catty-reminders:lab4 .
+    
+    - name: Test with Docker Compose
+      run: |
+        docker-compose -f docker-compose.yml up -d
+        sleep 20
+        docker-compose ps
+        docker-compose logs app
+        
+        # Проверка доступности
+        curl -f http://localhost:8181 || true

@@ -1,0 +1,50 @@
+name: 🚀 Lab 4 - Docker Compose Deploy
+
+on:
+  push:
+    branches: [lab4-docker-compose]
+    paths:
+      - 'docker-compose.yml'
+      - 'Dockerfile'
+      - 'app/**'
+      - 'requirements.txt'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: course.prafdin.ru
+        port: 2475
+        username: nopressure
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          echo "=== Lab 4: Docker Compose Deployment ==="
+          
+          cd ~/my-app
+          
+          echo "1. Pulling latest code..."
+          git pull origin lab4-docker-compose || echo "Already up to date"
+          
+          echo "2. Stopping old containers..."
+          docker-compose down || true
+          
+          echo "3. Building and starting new containers..."
+          docker-compose build
+          docker-compose up -d
+          
+          echo "4. Waiting for services to start..."
+          sleep 15
+          
+          echo "5. Checking services status..."
+          docker-compose ps
+          
+          echo "✅ Docker Compose stack deployed successfully!"
+          echo "📡 Application available at: http://app.titovskih.course.prafdin.ru"

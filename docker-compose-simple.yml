@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.lab4
+    container_name: catty-lab4-web-simple
+    ports:
+      - "8888:8181"  # Прямой доступ, без nginx
+    environment:
+      - DATABASE_PATH=/app/data/catty-lab4.db
+      - REDIS_HOST=redis
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine  # Более легкая версия
+    container_name: catty-lab4-redis-simple
+
+volumes:
+  app_data:

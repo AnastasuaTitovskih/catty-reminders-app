@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8181:8181"
+    volumes:
+      - app_data:/app/data
+      - ./config.json:/app/config.json  # Добавляем монтирование config.json
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:alpine
+
+volumes:
+  app_data:

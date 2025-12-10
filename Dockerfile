@@ -1,23 +1,14 @@
 FROM python:3.11-slim
 
-# Устанавливаем системные зависимости
-RUN apt-get update && apt-get install -y \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /app
 
-# Копируем зависимости
 COPY requirements.txt .
-
-# Устанавливаем Python зависимости
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем весь код
-COPY . .
+# Копируем только нужные файлы
+COPY app/main_lab4.py app/
+COPY config.json .
 
-# Открываем порт
 EXPOSE 8181
 
-# Команда запуска
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8181"]
+CMD ["uvicorn", "app.main_lab4:app", "--host", "0.0.0.0", "--port", "8181"]
