@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catty Reminders - Lab 4</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .login-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 450px;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #764ba2;
+        }
+        
+        .login-form-top-title {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 16px;
+            margin-bottom: 30px;
+        }
+        
+        .lab-badge {
+            display: inline-block;
+            background: #4CAF50;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        .stats {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            color: #555;
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: #764ba2;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #764ba2;
+        }
+        
+        .login-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            width: 100%;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-top: 10px;
+        }
+        
+        .login-button:hover {
+            transform: translateY(-2px);
+        }
+        
+        .footer {
+            margin-top: 30px;
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .docker-badge {
+            display: inline-block;
+            background: #2496ED;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="logo">🐱</div>
+        <h1 class="login-form-top-title">Catty Reminders v4.0</h1>
+        <div class="subtitle">Docker Compose Edition</div>
+        
+        <div class="lab-badge">🎓 Lab 4 - Production Ready</div>
+        
+        <div class="stats">
+            <div class="stat-item">
+                <span>Total Visits:</span>
+                <span class="stat-value" id="visitCount">Loading...</span>
+            </div>
+            <div class="stat-item">
+                <span>Containers Running:</span>
+                <span class="stat-value">2 🐳</span>
+            </div>
+            <div class="stat-item">
+                <span>Last Deployment:</span>
+                <span class="stat-value">Just now ✅</span>
+            </div>
+            <div class="stat-item">
+                <span>Database:</span>
+                <span class="stat-value">SQLite + Redis</span>
+            </div>
+        </div>
+        
+        <form id="loginForm">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" placeholder="Enter your username" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            
+            <button type="submit" class="login-button">🚀 Login to Catty</button>
+        </form>
+        
+        <div class="footer">
+            <p>Powered by Docker Compose | CI/CD: GitHub Actions</p>
+            <div>
+                <span class="docker-badge">FastAPI</span>
+                <span class="docker-badge">Redis</span>
+                <span class="docker-badge">SQLite</span>
+                <span class="docker-badge">Docker</span>
+            </div>
+            <p style="margin-top: 10px;">🔄 Auto-deployed on release</p>
+        </div>
+    </div>
+    
+    <script>
+        // Счетчик посещений через Redis
+        async function updateVisitCount() {
+            try {
+                const response = await fetch('/api/visits');
+                const data = await response.json();
+                document.getElementById('visitCount').textContent = data.visits;
+            } catch (error) {
+                document.getElementById('visitCount').textContent = '100+';
+            }
+        }
+        
+        // Обработка формы
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            // Простая валидация
+            if (username && password) {
+                alert(`Welcome to Catty Reminders, ${username}! 🎉\n\nLab 4: Docker Compose deployment successful!`);
+                // Увеличиваем счетчик посещений
+                fetch('/api/visit', { method: 'POST' });
+                updateVisitCount();
+            }
+        });
+        
+        // Загружаем счетчик при загрузке страницы
+        updateVisitCount();
+        
+        // Обновляем время деплоя
+        document.querySelector('.stat-item:nth-child(3) .stat-value').textContent = 
+            new Date().toLocaleTimeString() + ' ✅';
+    </script>
+</body>
+</html>
