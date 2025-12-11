@@ -1,13 +1,8 @@
 name: 🚀 Lab 4 - Docker Compose Deploy
 
 on:
-  push:
-    branches: [lab4-docker-compose]
-    paths:
-      - 'docker-compose.yml'
-      - 'Dockerfile'
-      - 'app/**'
-      - 'requirements.txt'
+  release:
+    types: [published]
   workflow_dispatch:
 
 jobs:
@@ -18,6 +13,12 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
     
+    - name: Debug info
+      run: |
+        echo "🔧 Lab 4 - Docker Compose Deployment"
+        echo "Trigger: ${{ github.event_name }}"
+        echo "Release: ${{ github.event.release.tag_name }}"
+    
     - name: Deploy via SSH
       uses: appleboy/ssh-action@v1.0.0
       with:
@@ -27,24 +28,34 @@ jobs:
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
           echo "=== Lab 4: Docker Compose Deployment ==="
+          echo "Release: ${{ github.event.release.tag_name }}"
           
           cd ~/my-app
           
-          echo "1. Pulling latest code..."
-          git pull origin lab4-docker-compose || echo "Already up to date"
+          echo "1. Pulling latest code for Lab 4..."
+          git fetch origin
+          git checkout lab4-docker-compose
+          git pull origin lab4-docker-compose
           
-          echo "2. Stopping old containers..."
+          echo "2. Logging in to GitHub Container Registry..."
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          
+          echo "3. Pulling Docker image from GHCR..."
+          docker pull ghcr.io/${{ github.repository }}:lab4-docker-compose
+          
+          echo "4. Stopping old Docker Compose stack..."
           docker-compose down || true
           
-          echo "3. Building and starting new containers..."
+          echo "5. Starting new Docker Compose stack..."
           docker-compose build
           docker-compose up -d
           
-          echo "4. Waiting for services to start..."
-          sleep 15
+          sleep 10
           
-          echo "5. Checking services status..."
+          echo "6. Checking services..."
           docker-compose ps
+          docker-compose logs --tail=10
           
-          echo "✅ Docker Compose stack deployed successfully!"
-          echo "📡 Application available at: http://app.titovskih.course.prafdin.ru"
+          echo "✅ Docker Compose stack deployed!"
+          echo "📡 Application: http://app.titovskih.course.prafdin.ru"
+          echo "🎯 Lab 4 completed: Multi-container with Docker Compose"

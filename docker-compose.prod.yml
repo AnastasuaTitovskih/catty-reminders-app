@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  web:
+    image: ghcr.io/anastasuaitovskih/catty-reminders-app:lab4-docker-compose
+    ports:
+      - "8181:8181"
+    volumes:
+      - app_data:/app/data
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  app_data:
+  redis_data:
