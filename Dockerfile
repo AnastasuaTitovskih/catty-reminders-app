@@ -5,8 +5,9 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Копируем только нужные файлы
+# Копируем ВСЕ нужные файлы
 COPY app/main_lab4.py app/
+COPY templates/ templates/
 COPY config.json .
 
 EXPOSE 8181
