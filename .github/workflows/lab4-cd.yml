@@ -32,22 +32,17 @@ jobs:
           
           cd ~/my-app
           
-          echo "1. Pulling latest code for Lab 4..."
-          git fetch origin
-          git checkout lab4-docker-compose
-          git pull origin lab4-docker-compose
-          
+                    
           echo "2. Logging in to GitHub Container Registry..."
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           
           echo "3. Pulling Docker image from GHCR..."
-          docker pull ghcr.io/${{ github.repository }}:lab4-docker-compose
+          docker pull ghcr.io/anastasuatitovskih/catty-reminders-app:lab4-docker-compose
           
           echo "4. Stopping old Docker Compose stack..."
           docker-compose down || true
           
           echo "5. Starting new Docker Compose stack..."
-          docker-compose build
           docker-compose up -d
           
           sleep 10
